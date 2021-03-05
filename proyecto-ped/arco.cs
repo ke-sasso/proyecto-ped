@@ -28,8 +28,8 @@ namespace proyecto_ped
         {
             this.nDestino = destino;
             this.peso = peso;
-            this.grosor_flecha = 2;
-            this.color = Color.Goldenrod;
+            this.grosor_flecha = 3;
+            this.color = Color.DarkRed;
         }
         #endregion
     }

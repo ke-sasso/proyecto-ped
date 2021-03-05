@@ -57,9 +57,9 @@ namespace proyecto_ped
             this.ListaAdyacencia = new List<arco>();
             this._banderas = new Dictionary<string, short>();
             this._banderas_predeterminado = new Dictionary<string, short>();
-            this.Color = Color.SeaShell; // Definimos el color del nodo
+            this.Color = Color.Purple; // Definimos el color del nodo
             this.Dimensiones = new Size(size, size); // Definimos las dimensiones del circulo
-            this.FontColor = Color.Black; // Color de la fuente
+            this.FontColor = Color.White; // Color de la fuente
             this.Visitado = false;
         }
         public vertice() : this("") { } // Constructor por defecto
@@ -99,8 +99,8 @@ namespace proyecto_ped
                 arco.nDestino.Posicion.Y + (int)(radio * difY / distancia)));
                 g.DrawString(
                 arco.peso.ToString(),
-               new Font("Century Gothic", 14, FontStyle.Bold),
-                new SolidBrush(Color.White),//color de la flecha
+               new Font("Century Gothic", 16, FontStyle.Bold),
+                new SolidBrush(Color.DarkRed),//color de la flecha
                 this._posicion.X - (int)((difX / 3)),
                 this._posicion.Y - (int)((difY / 3)),
                 new StringFormat()
