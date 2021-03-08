@@ -7,32 +7,33 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Drawing.Imaging;
 using System.Collections;
 using System.Threading;
 using System.Drawing.Drawing2D;
+using System.IO;
 
 namespace proyecto_ped
 {
     public partial class principal : Form
     {
-        private grafo grafo; // instanciamos la clase CGrafo
-        private vertice nuevoNodo; // instanciamos la clase CVertice
-        private vertice NodoOrigen; // instanciamos la clase CVertice
-        private vertice NodoDestino; // instanciamos la clase CVertice
-        private int var_control = 0; // la utilizaremos para determinar el estado en la pizarra:
-        // 0 -> sin acción, 1 -> Dibujando arco, 2 -> Nuevo vértice
+        private grafo grafo; // instanciamos la clase GRAFO
+        private vertice nuevoNodo; // instanciamos la clase VERTICE
+        private vertice NodoOrigen; // instanciamos la clase VERTICE
+        private vertice NodoDestino; // instanciamos la clase VERTICE
+        private int var_control = 0; // la utilizaremos para determinar el estado en el mapa: 0 -> sin acción, 1 -> Dibujando arco, 2 -> Nuevo vértice
+  
+    
         // variables para el control de ventanas modales
-        //private Recorrido ventanaRecorrido; // ventana para seleccionar el nodo inicial del recorrido
-        private Label[] arreglo, arreglo2; //Arreglos de Label se usan para la simulacion de la cola, pila y vector
         private verticecrud ventanaVertice; // ventana para agregar los vértices
         private arcocrud ventanaArco; // ventana para agregar los arcos
-        List<vertice> nodosRuta; // Lista de nodos utilizada para almacenar la ruta
-        List<vertice> nodosOrdenados; // Lista de nodos ordenadas a partir del nodo origen
-        bool buscarRuta = false, nuevoVertice = false, nuevoArco = false;
-        private int numeronodos = 0, opc; //Enteros para definir las diferentes opciones y el numero de nodos
-        double peso = 0.0;
-        bool profundidad = false, anchura = false, nodoEncontrado = false, buscarNodo = false;
 
+        List<vertice> nodosOrdenados; // Lista de nodos ordenadas a partir del nodo origen
+        bool profundidad = false, nuevoVertice = false, nuevoArco = false, anchura = false, nodoEncontrado = false, buscarNodo=false;
+        private int numeronodos = 0; //Enteros para definir las diferentes opciones y el numero de nodos
+        private string destino = "",origen = "";
+        Queue cola = new Queue(); //para el recorrido de anchura
+        private int distancia = 0;
         private void mapa_MouseLeave(object sender, EventArgs e)
         {
             mapa.Refresh();
@@ -134,6 +135,56 @@ namespace proyecto_ped
             }
         }
 
+        private void button1_Click(object sender, EventArgs e)
+        {
+            if (comboBox2.SelectedIndex > -1){
+                foreach (vertice nodo in grafo.nodos){
+                    if (nodo.Valor == comboBox2.SelectedItem.ToString()) {
+                        grafo.nodos.Remove(nodo);
+                        //Borrando arcos que posea el nodo eliminado
+                        nodo.ListaAdyacencia = new List<arco>();
+                        break;
+                    }
+                }
+                foreach (vertice nodo in grafo.nodos){
+                    foreach (arco arco in nodo.ListaAdyacencia){
+                        if (arco.nDestino.Valor == comboBox2.SelectedItem.ToString()){
+                            nodo.ListaAdyacencia.Remove(arco);
+                            break;
+                        }
+                    }
+                }
+                nuevoArco = true;
+                nuevoVertice = true;
+                comboBox2.SelectedIndex = -1;
+                mapa.Refresh();
+            }else{
+                label5.Text = "Seleccione un nodo";
+                label5.BackColor = Color.Red;
+            }
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            if (comboBox3.SelectedIndex > -1){
+                foreach (vertice nodo in grafo.nodos){
+                    foreach (arco arco in nodo.ListaAdyacencia){
+                        if ("(" + nodo.Valor + "," + arco.nDestino.Valor + ") PESO: " + arco.peso == comboBox3.SelectedItem.ToString()){
+                            nodo.ListaAdyacencia.Remove(arco);
+                            break;
+                        }
+                    }
+                }
+                nuevoVertice = true;
+                nuevoArco = true;
+                comboBox3.SelectedIndex = -1;
+                mapa.Refresh();
+            }else{
+                label5.Text = "Seleccione un arco";
+                label5.BackColor = Color.Red;
+            }
+        }
+
         private void mapa_Paint(object sender, PaintEventArgs e)
         {
             try
@@ -142,30 +193,69 @@ namespace proyecto_ped
                 grafo.DibujarGrafo(e.Graphics);
                 if (nuevoVertice)
                 {
-                    /*comboBox1.Items.Clear();
+                    comboBox1.Items.Clear();
                     comboBox1.SelectedIndex = -1;
-                    comboBox5.Items.Clear();
-                    comboBox5.SelectedIndex = -1;
-                    */
+                    comboBox2.Items.Clear();
+                    comboBox2.SelectedIndex = -1;
+
                     foreach (vertice nodo in grafo.nodos)
                     {
-                        /*comboBox1.Items.Add(nodo.Valor);
-                        comboBox5.Items.Add(nodo.Valor);*/
+                        comboBox2.Items.Add(nodo.Valor);
+                        comboBox1.Items.Add(nodo.Valor);
                     }
                     nuevoVertice = false;
                 }
                 if (nuevoArco)
                 {
-                    /*comboBox2.Items.Clear();
-                    comboBox2.SelectedIndex = -1;*/
+                    comboBox3.Items.Clear();
+                    comboBox3.SelectedIndex = -1;
                     foreach (vertice nodo in grafo.nodos)
                     {
                         foreach (arco arco in nodo.ListaAdyacencia)
                         {
-                            //comboBox2.Items.Add("(" + nodo.Valor + "," + arco.nDestino.Valor + ") peso: " + arco.peso);
+                            comboBox3.Items.Add("(" + nodo.Valor + "," + arco.nDestino.Valor + ") PESO: " + arco.peso);
                         }
                     }
                     nuevoArco = false;
+                }
+                if (profundidad)
+                {
+                    //ordenando los nodos desde el que indica el usuario
+                    ordenarListaNodos();
+                    foreach (vertice nodo in nodosOrdenados)
+                    {
+                        if (!nodo.Visitado)
+                            recorridoNodoProfundidad(nodo, e.Graphics);
+                    }
+                    profundidad = false;
+                    //reestablecer los valroes
+                    foreach (vertice nodo in grafo.nodos)
+                        nodo.Visitado = false;
+
+                }
+                if (anchura)
+                {
+                    distancia = 0;
+                    //ordenando los nodos desde el que indica el usuario
+                    cola = new Queue();
+                    ordenarListaNodos();
+                    foreach (vertice nodo in nodosOrdenados)
+                    {
+                        if (!nodo.Visitado && !nodoEncontrado)
+                            recorridoNodoAnchura(nodo, e.Graphics, destino);
+                    }
+                    anchura = false;
+                    nodoEncontrado = false;
+                    //reestablecer los valroes
+                    foreach (vertice nodo in grafo.nodos)
+                        nodo.Visitado = false;
+                }
+                if (buscarNodo)
+                {
+                    grafo.BuscarVertice(textBox1.Text).colorear(e.Graphics);
+                    Thread.Sleep(1000);
+                    grafo.BuscarVertice(textBox1.Text).DibujarVertice(e.Graphics);
+                    buscarNodo = false;
                 }
             }
             catch (Exception ex)
@@ -174,6 +264,74 @@ namespace proyecto_ped
             }
         }
 
+        private void recorridoNodoAnchura(vertice vertice, Graphics g, string destino)
+        {
+            vertice.Visitado = true;
+            cola.Enqueue(vertice);
+            vertice.colorear(g);
+            Thread.Sleep(1000);
+            vertice.DibujarVertice(g);
+            if (vertice.Valor == destino) {
+                nodoEncontrado = true;
+                return;
+            }
+            while (cola.Count > 0){
+                vertice aux = (vertice)cola.Dequeue();
+                foreach (arco adya in aux.ListaAdyacencia) {
+                    if (!adya.nDestino.Visitado) {
+                        if (!nodoEncontrado) {
+                            adya.nDestino.Visitado = true;
+                            adya.nDestino.colorear(g);
+                            Thread.Sleep(1000);
+                            adya.nDestino.DibujarVertice(g);
+                            if (destino != "")
+                                distancia += adya.peso;
+                            cola.Enqueue(adya.nDestino);
+                            if (adya.nDestino.Valor == destino)
+                            {
+                                nodoEncontrado = true;
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        public void ordenarListaNodos()
+        {
+            nodosOrdenados = new List<vertice>();
+            bool est = false;
+            foreach (vertice nodo in grafo.nodos)
+            {
+                if (nodo.Valor == origen)
+                {
+                    nodosOrdenados.Add(nodo);
+                    est = true;
+                }
+                else if (est)
+                    nodosOrdenados.Add(nodo);
+            }
+            foreach (vertice nodo in grafo.nodos)
+            {
+                if (nodo.Valor == origen)
+                {
+                    est = false;
+                    break;
+                }
+                else if (est)
+                    nodosOrdenados.Add(nodo);
+            }
+        }
+        private void recorridoNodoProfundidad(vertice vertice, Graphics g)
+        {
+            vertice.Visitado = true;
+            vertice.colorear(g);
+            Thread.Sleep(1000);
+            vertice.DibujarVertice(g);
+            foreach (arco adya in vertice.ListaAdyacencia){
+                if (!adya.nDestino.Visitado) recorridoNodoProfundidad(adya.nDestino, g);
+            }
+        }
         private void mapa_MouseUp(object sender, MouseEventArgs e)
         {
             switch (var_control)
@@ -204,15 +362,90 @@ namespace proyecto_ped
             }
         }
 
+        private void label4_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button6_Click(object sender, EventArgs e)
+        {
+            Graphics gr = this.CreateGraphics();
+            // Tamaño de lo que queremos copiar
+            Size fSize = this.Size;
+            // Creamos el bitmap con el área que vamos a capturar
+            // En este caso, con el tamaño del formulario actual
+            Bitmap bm = new Bitmap(fSize.Width, fSize.Height, gr);
+            // Un objeto Graphics a partir del bitmap
+            Graphics gr2 = Graphics.FromImage(bm);
+            // Copiar el área de la pantalla que ocupa el formulario
+            gr2.CopyFromScreen(this.Location.X, this.Location.Y, 0, 0, fSize);
+
+            // Asignamos la imagen al PictureBox
+            this.pictureBox1.Image = bm;
+          
+            //bm.Save("C:\\Users\\kevin.sasso\\Desktop\\POO\\proyecto-ped\\proyecto-ped\\imagenes\\mapa-esa.jpg", System.Drawing.Imaging.ImageFormat.Jpeg);
+        }
+
+        private void button7_Click(object sender, EventArgs e)
+        {
+            this.pictureBox1.Image.Save("mapa-esa.jpg", System.Drawing.Imaging.ImageFormat.Jpeg);
+           // this.pictureBox1.Image.Save("C:\\Users\\kevin.sasso\\Desktop\\POO\\proyecto-ped\\proyecto-ped\\imagenes\\mapa-esa.jpg", System.Drawing.Imaging.ImageFormat.Jpeg);
+        }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+            if (textBox1.Text.Trim() != "")
+            {
+                if (grafo.BuscarVertice(textBox1.Text) != null)
+                {
+                    label5.Text = "Si se encuentra el vértice " + textBox1.Text;
+                    label5.BackColor = Color.Green;
+                    buscarNodo = true;
+                    mapa.Refresh();
+                }
+                else
+                {
+                    label5.Text = "No se encuentra el vértice " + textBox1.Text;
+                    label5.BackColor = Color.Red;
+                }
+            }
+        }
+
         private void nUEVOVERTICEToolStripMenuItem_Click(object sender, EventArgs e)
         {
             nuevoNodo = new vertice();
             var_control = 2; // recordemos que es usado para indicar el estado en la pizarra: 0 ->
-            // sin accion, 1 -> Dibujando arco, 2 -> Nuevo vértice  
+                            // sin accion, 1 -> Dibujando arco, 2 -> Nuevo vértice  
         }
 
-        Queue cola = new Queue(); //para el recorrido de anchura
-        private string destino = "", origen = "";
+   
+
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            if (comboBox1.SelectedIndex > -1){
+                profundidad = true;
+                origen = comboBox1.SelectedItem.ToString();
+                mapa.Refresh();
+                comboBox1.SelectedIndex = -1;
+            }else{
+                label5.Text = "Seleccione un nodo de partida";
+                label5.BackColor = Color.Red;
+            }
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            if (comboBox1.SelectedIndex > -1){
+                origen = comboBox1.SelectedItem.ToString();
+                anchura = true;
+                mapa.Refresh();
+                comboBox1.SelectedIndex = -1;
+            } else{
+                label5.Text = "Seleccione un nodo de partida";
+                label5.BackColor = Color.Red;
+            }
+        }
 
         public principal()
         {
