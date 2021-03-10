@@ -29,12 +29,12 @@ namespace proyecto_ped
                 MessageBox.Show("Debes ingresar un valor", "Error", MessageBoxButtons.OK,
                     MessageBoxIcon.Exclamation);
             }
-            else if (dato.Length > 2)
+            else if (dato.Length > 3)
             {
-                var result = MessageBox.Show("Se tomaran en cuenta solamente los dos primeros carateres. Desea continuar?", "Advertencia", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                var result = MessageBox.Show("Se tomaran en cuenta solamente los tres primeros carateres. Desea continuar?", "Advertencia", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
                 if (result == System.Windows.Forms.DialogResult.Yes)
                 {
-                    dato = dato.Substring(0, 2);
+                    dato = dato.Substring(0, 3);
                     control = true;
                     Hide();
                 }
@@ -58,6 +58,12 @@ namespace proyecto_ped
             {
                 button1_Click(null, null);
             }
+        }
+
+        private void verticecrud_Shown(object sender, EventArgs e)
+        {
+            textBox1.Clear();
+            textBox1.Focus();
         }
     }
 }

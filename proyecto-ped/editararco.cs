@@ -10,18 +10,19 @@ using System.Windows.Forms;
 
 namespace proyecto_ped
 {
-    public partial class arcocrud : Form
+    public partial class editararco : Form
     {
         public bool control; // variable de control
         public int dato; // el dato que almacenará el vértice
-        public arcocrud()
+
+        public editararco()
         {
             InitializeComponent();
             control = false;
             dato = 0;
         }
 
-        private void label1_Click(object sender, EventArgs e)
+        private void editararco_Load(object sender, EventArgs e)
         {
 
         }
@@ -55,25 +56,7 @@ namespace proyecto_ped
             Hide();
         }
 
-        private void textBox1_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void arcocrud_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.KeyCode == Keys.Enter)
-            {
-                button1_Click(null, null);
-            }
-        }
-
-        private void arcocrud_Load(object sender, EventArgs e)
-        {
-
-        }
-
-        private void arcocrud_Shown(object sender, EventArgs e)
+        private void editararco_Shown(object sender, EventArgs e)
         {
             textBox1.Clear();
             textBox1.Focus();
