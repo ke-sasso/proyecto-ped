@@ -95,6 +95,7 @@ namespace proyecto_ped
             this.Controls.Add(this.button1);
             this.Name = "arcocrud";
             this.Text = "arcocrud";
+            this.Load += new System.EventHandler(this.arcocrud_Load);
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.arcocrud_KeyDown);
             this.ResumeLayout(false);
             this.PerformLayout();

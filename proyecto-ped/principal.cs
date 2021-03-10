@@ -27,6 +27,7 @@ namespace proyecto_ped
         // variables para el control de ventanas modales
         private verticecrud ventanaVertice; // ventana para agregar los vértices
         private arcocrud ventanaArco; // ventana para agregar los arcos
+        private editararco ventanaEditarArco; // ventana para editar los arco
 
         List<vertice> nodosOrdenados; // Lista de nodos ordenadas a partir del nodo origen
         bool profundidad = false, nuevoVertice = false, nuevoArco = false, anchura = false, nodoEncontrado = false, buscarNodo=false;
@@ -257,6 +258,28 @@ namespace proyecto_ped
                     grafo.BuscarVertice(textBox1.Text).DibujarVertice(e.Graphics);
                     buscarNodo = false;
                 }
+
+                if (ventanaEditarArco.control)
+                {
+                    int distancia = ventanaEditarArco.dato;
+                    if (comboBox3.SelectedIndex > -1)
+                    {
+                        foreach (vertice nodo in grafo.nodos) {
+                            foreach (arco arco in nodo.ListaAdyacencia) {
+                                if ("(" + nodo.Valor + "," + arco.nDestino.Valor + ") PESO: " + arco.peso == comboBox3.SelectedItem.ToString()) {
+                                    arco.peso = distancia;
+                                    break;
+                                }
+                            }
+                        }
+                        nuevoVertice = true;
+                        nuevoArco = true;
+                        comboBox3.SelectedIndex = -1;
+                        mapa.Refresh();
+                        ventanaEditarArco.control = false;
+                    }
+
+                }
             }
             catch (Exception ex)
             {
@@ -392,6 +415,22 @@ namespace proyecto_ped
            // this.pictureBox1.Image.Save("C:\\Users\\kevin.sasso\\Desktop\\POO\\proyecto-ped\\proyecto-ped\\imagenes\\mapa-esa.jpg", System.Drawing.Imaging.ImageFormat.Jpeg);
         }
 
+        private void button8_Click(object sender, EventArgs e)
+        {
+            if (comboBox3.SelectedIndex > -1)
+            {
+                ventanaEditarArco.Visible = false;
+                ventanaEditarArco.control = false;
+                ventanaEditarArco.ShowDialog();
+            }
+            else
+            {
+                label5.Text = "Seleccione un arco";
+                label5.BackColor = Color.Red;
+            }
+
+        }
+
         private void button5_Click(object sender, EventArgs e)
         {
             if (textBox1.Text.Trim() != "")
@@ -455,6 +494,7 @@ namespace proyecto_ped
             var_control = 0;
             ventanaVertice = new verticecrud();
             ventanaArco = new arcocrud();
+            ventanaEditarArco = new editararco();
             nodosOrdenados = new List<vertice>();
             this.SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.DoubleBuffer, true);
         }

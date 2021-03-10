@@ -53,6 +53,12 @@
     <Compile Include="arcocrud.Designer.cs">
       <DependentUpon>arcocrud.cs</DependentUpon>
     </Compile>
+    <Compile Include="editararco.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="editararco.Designer.cs">
+      <DependentUpon>editararco.cs</DependentUpon>
+    </Compile>
     <Compile Include="grafo.cs" />
     <Compile Include="lista.cs" />
     <Compile Include="principal.cs">
@@ -72,6 +78,9 @@
     </Compile>
     <EmbeddedResource Include="arcocrud.resx">
       <DependentUpon>arcocrud.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="editararco.resx">
+      <DependentUpon>editararco.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="principal.resx">
       <DependentUpon>principal.cs</DependentUpon>
